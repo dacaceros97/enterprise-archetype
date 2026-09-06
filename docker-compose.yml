@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: archetype-db
+    environment:
+      POSTGRES_USER: archetype_user
+      POSTGRES_PASSWORD: archetype_pwd
+      POSTGRES_DB: archetype_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U archetype_user -d archetype_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: archetype-backend
+    environment:
+      QUARKUS_DATASOURCE_DB_KIND: postgresql
+      QUARKUS_DATASOURCE_USERNAME: archetype_user
+      QUARKUS_DATASOURCE_PASSWORD: archetype_pwd
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://db:5432/archetype_db
+      QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: update
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: archetype-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8080/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

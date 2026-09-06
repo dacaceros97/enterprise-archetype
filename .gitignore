@@ -1,0 +1,18 @@
+# Dependencias
+node_modules/
+target/
+.next/
+out/
+
+# Entornos y configs locales
+.env
+.env.local
+*.pem
+backend/src/main/resources/privateKey.pem
+backend/src/main/resources/publicKey.pem
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+.DS_Store
